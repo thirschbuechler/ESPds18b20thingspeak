@@ -1,6 +1,8 @@
 #ifndef sensorconfig_H
 #define sensorconfig_H
 
+#define sensorconfigname "Config1"
+
 #define myPeriodic 15 //in sec | Thingspeak pub is 15sec
 #define ONE_WIRE_BUS 2  // DS18B20 on arduino pin2 corresponds to D4 on physical board
 
@@ -15,6 +17,8 @@ const char* key = "";//write apikey oven
 //use a 0x00, 0x00 ... dummy sensor if one field is empty
 DeviceAddress T1 = {0x28, 0xF0, 0x0A, 0x77, 0x91, 0x06, 0x02, 0x6A};
 DeviceAddress T2 = {0x28, 0xBB, 0x64, 0x77, 0x91, 0x14, 0x02, 0x29};
+DeviceAddress Tdummy = {0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08};//dummy f. debug sensor not found
 DeviceAddress *adresses [] = {&T1,&T2};
+const char* names[] = {"Sensor One", "Sensor Two"};
 
 #endif
