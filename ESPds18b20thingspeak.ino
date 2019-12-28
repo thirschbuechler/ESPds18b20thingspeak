@@ -7,7 +7,8 @@
 //node-config: provides *adresses, *adresses2, key, server
 //        ONE_WIRE_BUS, maxdisc, myPeriodic, thermos
 
-#define sw_version "1.1" 
+
+#define sw_version "1.2" 
 
 //// Changelog ////
 // 1.01: renamed sendTeperature to sendTemperature + its 1x call
@@ -15,7 +16,10 @@
 //       turned down maxloops to 500 (from 1000) after making it a var
 //       added 0.0==total to buildstr reset condition (is very unlikely)
 //       improved reset by using proper reset instruction instead of "0"-address
+// 1.2: added delay(0) wifi stack breather to resolve watchdog reboots before uplink complete
+//		https://www.esp8266.com/viewtopic.php?f=6&t=18819
 
+// unused debug options:
 // ToDo: try-catch? https://discourse.processing.org/t/try-catch-with-serial/1148/6
 // ToDo: check whether resetfunc fails sometimes (worked in lab conditions), e.g. write values -10 to channels
 
@@ -61,6 +65,7 @@ void resetFunc(void){
 String strAddress(DeviceAddress deviceAddress){
   String ret="";
   for (uint8_t i = 0; i < 8; i++){
+    delay(0); // wifi stack breather
     if (deviceAddress[i] < 16) ret+="0"; // zero pad the address if necessary
     ret+=String(deviceAddress[i], HEX);
   }
@@ -71,6 +76,7 @@ String strAddress(DeviceAddress deviceAddress){
 //get name if available, this doesn't work for some reason
 String nameforaddress(DeviceAddress deviceAddress){
   for (uint8_t i = 1; i < (thermos + 1); i++) {
+    delay(0); // wifi stack breather
     if ((unsigned char *)addresses[i-1]==deviceAddress){
         return(String(names[i-1])+" "+strAddress(deviceAddress));
     }
@@ -84,6 +90,7 @@ String nameforaddress(DeviceAddress deviceAddress){
 // get temperature of sensor $numb as specified in adresses in sensorconfig.h
 float gettempx(int numb) {
   float temp = -127;
+  delay(0); // wifi stack breather
   temp = sensors.getTempC((unsigned char *) addresses[numb]);
   Serial.print(String(temp) + "°C ");
   
@@ -112,7 +119,8 @@ String buildstr(){
     Serial.println("sensor request");
     sensors.requestTemperatures(); //query all devices
     Serial.println("sensor request over");
-    
+
+    delay(0); // wifi stack breather
     String postStr = "";
   
     float temp = -127;
@@ -121,6 +129,7 @@ String buildstr(){
     for (uint8_t i = 1; i < (thermos + 1); i++) {
 
       temp = gettempx(i - 1);
+      delay(0); // wifi stack breather
       
       if (isnan(temp)){ // reset on NAN
         resetFunc();
@@ -139,6 +148,8 @@ String buildstr(){
     }//end for
 
 
+    delay(0); // wifi stack breather
+
     if ((0.0==total)&&(loops>5)){ //it's so unlikely that a sensor error is more likely --> reset
       resetFunc();
     }
@@ -150,7 +161,8 @@ String buildstr(){
 //connect to thingspeak, query sensors, upload data
 void sendTemperatureTS(){
   WiFiClient client; //client object to connect to server
-
+  delay(0); // wifi stack breather
+  
   if (client.connect(server, 80)) {
     Serial.println("connected to wifi and server");
 
@@ -233,5 +245,4 @@ void loop() {
     delay(1000);
     
 }//end loop
-
 
